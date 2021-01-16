@@ -9,24 +9,17 @@ local function main()
 	node.LFS.temp_control()
 	node.LFS.server()
 	node.LFS.ws_controller()
-	--[[
-	if file.exists('temp_control.lc') then 
-		dofile('temp_control.lc')
-	else
-		dofile('temp_control.lua')
+	--read config file into PID controller
+	local f = file.open('config', 'r')
+	if f ~= nil then
+		local cfg = f:readline()
+		while cfg ~= nil do
+			--initialize config the same way we set values from websockets
+			ws_on_message(cfg, 1) 
+			cfg = f:readline()
+		end
+		f:close()
 	end
-	if file.exists('server.lc') then 
-		dofile('server.lc')
-	else
-		dofile('server.lua')
-	end
-	if file.exists('ws_controller.lc') then 
-		dofile('ws_controller.lc')
-	else
-		dofile('ws_controller.lua')
-	end
-	--]]
-
 	local poll_wifi_retries = 0
 	local function poll_wifi(timer)
 		poll_wifi_retries = poll_wifi_retries + 1
