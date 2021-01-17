@@ -8,6 +8,7 @@ pid loop calls global: update_clients() every cycle to push data to clients over
 	if update_clients == nil (not initialized yet), it is skipped
 --]]
 do
+	--[[move to init.lua for safe startup
 	--constants
 	--pin assignments:
 	local CS_BREW  = 3
@@ -20,13 +21,15 @@ do
 	--safety:
 	local HIGH_TEMP_LOCKOUT = 170 --temp above this value is an error, or thermal runaway
 	local LOW_TEMP_LOCKOUT = 10 --temp below this value is an error (or a broken furnace)
-
+	--]]
 	--local copies of functions
-	local mode, write = gpio.mode, gpio.write
+	local floor = math.floor
+	local mode, read, write = gpio.mode, gpio.read, gpio.write
 	local set_mosi, get_miso, transaction, setup = spi.set_mosi, spi.get_miso, spi.transaction, spi.setup
 
 	--setup bus
 	setup(1, spi.MASTER, spi.CPOL_HIGH, spi.CPHA_HIGH, 8, 20)
+	--[[move to init.lua for safe startup
 	--initialize interfaces
 	mode(STEAM_PIN, gpio.INPUT, gpio.PULLUP)
 	mode(SSR_PIN, gpio.OUTPUT)
@@ -35,6 +38,7 @@ do
 	write(CS_BREW, 1)
 	mode(CS_STEAM, gpio.OUTPUT)
 	write(CS_STEAM, 1)
+	--]]
 	--initialize chips:
 	set_mosi(1, '\128\208')
 	write(CS_BREW, 0)
@@ -93,12 +97,12 @@ do
 		--switch inputs
 		PID.brew_temp, PID.steam_temp = read_temps()
 		local input, setpoint
-		if gpio.read(STEAM_PIN) == 0 then 
+		if read(STEAM_PIN) == 0 then 
 			input = PID.steam_temp
 			setpoint = PID.steam_setpoint
 		else 
 			input = PID.brew_temp
-			setpoint = PID.steam_setpoint
+			setpoint = PID.brew_setpoint
 		end
 		
 		--over-temp / bad temp lockout:
@@ -136,11 +140,17 @@ do
 	PID.finish_cycle = function() end --preallocate circular ref
 	function PID.start_cycle()
 		PID.compute()
-		if PID.output > 0 then
-			gpio.write(SSR_PIN, 1)
-			tmr.create():alarm(PID.output, tmr.ALARM_SINGLE, PID.finish_cycle)
-		else
-			gpio.write(SSR_PIN, 0)
+		if PID.output == PID.interval then --100% duty
+			write(SSR_PIN, 1)
+			local delay = floor(PID.interval + .5)
+			tmr.create():alarm(PID.interval, tmr.ALARM_SINGLE, PID.start_cycle)
+		elseif PID.output > 0 then --fractional duty
+			write(SSR_PIN, 1)
+			local delay = floor(PID.output + .5) --round
+			tmr.create():alarm(delay, tmr.ALARM_SINGLE, PID.finish_cycle) --delay must be int
+		else --0% duty
+			write(SSR_PIN, 0)
+			local delay = floor(PID.interval + .5)
 			tmr.create():alarm(PID.interval, tmr.ALARM_SINGLE, PID.start_cycle)
 		end
 		if _G.update_clients ~= nil then
@@ -149,7 +159,8 @@ do
 	end
 
 	function PID.finish_cycle()
-		gpio.write(SSR_PIN, 0)
+		write(SSR_PIN, 0)
+		local delay = floor(PID.interval - PID.output + .5)
 		tmr.create():alarm(PID.interval - PID.output, tmr.ALARM_SINGLE, PID.start_cycle)
 	end
 
