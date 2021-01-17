@@ -1,3 +1,25 @@
+--constants
+--pin assignments:
+local CS_BREW  = 3
+local CS_STEAM = 4
+local STEAM_PIN = 1
+local SSR_PIN = 2
+--calibration: 
+local BREW_ZERO = 7620.5 --adc reading at 0C
+local STEAM_ZERO = 7620.5
+--safety:
+local HIGH_TEMP_LOCKOUT = 170 --temp above this value is an error, or thermal runaway
+local LOW_TEMP_LOCKOUT = 10 --temp below this value is an error (or a broken furnace)
+--initialize interfaces:
+gpio.mode(STEAM_PIN, gpio.INPUT, gpio.PULLUP)
+gpio.mode(SSR_PIN, gpio.OUTPUT)
+gpio.write(SSR_PIN, 0)
+gpio.mode(CS_BREW, gpio.OUTPUT)
+gpio.write(CS_BREW, 1)
+gpio.mode(CS_STEAM, gpio.OUTPUT)
+gpio.write(CS_STEAM, 1)
+
+
 
 local function start_ap()
 	--switch from sta to ap in case wifi is not set-up
@@ -6,9 +28,9 @@ local function start_ap()
 end
 
 local function main()
-	node.LFS.temp_control()
-	node.LFS.server()
-	node.LFS.ws_controller()
+	node.LFS.temp_control() --start PID routine
+	node.LFS.server() --start HTTP / WS server
+	node.LFS.ws_controller() --initialize server-side WS responder
 	--read config file into PID controller
 	local f = file.open('config', 'r')
 	if f ~= nil then
