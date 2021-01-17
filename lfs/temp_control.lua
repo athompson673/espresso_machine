@@ -40,6 +40,7 @@ do
 	write(CS_BREW, 0)
 	transaction( 1, 0, 0, 0, 0, 16, 0, 0)
 	write(CS_BREW, 1)
+	set_mosi(1, '\128\208')
 	write(CS_STEAM, 0)
 	transaction( 1, 0, 0, 0, 0, 16, 0, 0)
 	write(CS_STEAM, 1)
@@ -64,11 +65,12 @@ do
 		transaction( 1, 0, 0, 0, 0, 8, 0, 16)
 		write(CS_BREW, 1)
 		local brew_adc = get_miso(1, 0, 15, 1)
+		set_mosi(1, '\1')
 		write(CS_STEAM, 0)
 		transaction( 1, 0, 0, 0, 0, 8, 0, 16)
 		write(CS_STEAM, 1)
 		local steam_adc = get_miso(1, 0, 15, 1)
-		return CVD(brew_adc), CVD(steam_adc)
+		return CVD(BREW_ZERO, brew_adc), CVD(STEAM_ZERO, steam_adc)
 	end
 
 	PID = {} --global
@@ -90,10 +92,13 @@ do
 	function PID.compute()
 		--switch inputs
 		PID.brew_temp, PID.steam_temp = read_temps()
+		local input, setpoint
 		if gpio.read(STEAM_PIN) == 0 then 
-			local input = PID.steam_temp
+			input = PID.steam_temp
+			setpoint = PID.steam_setpoint
 		else 
-			local input = PID.brew_temp
+			input = PID.brew_temp
+			setpoint = PID.steam_setpoint
 		end
 		
 		--over-temp / bad temp lockout:
@@ -112,7 +117,7 @@ do
 			return --let outside function modify PID.output to change manual duty cycle
 		end
 		
-		local err = PID.setpoint - input
+		local err = setpoint - input
 		--integral
 		PID.integral = PID.integral + (err * PID.ki)
 		if PID.integral > PID.interval then PID.integral = PID.interval
