@@ -58,11 +58,18 @@ do
 
 	function ws_on_message(payload, opcode) --overwrite default ws_on_message
 		if opcode ~= 1 then return end --only handle text opcode
-		--for each line
-			--split on first ":" into key:value
-			if funcs[key] ~= nil then
-				funcs[key](value)
+		while #payload > 0 do --for each line
+			--split next line
+			local e = payload:find("\r\n", 1, true)
+			if not e then break end
+			local line = payload:sub(1, e - 1)
+			payload = payload:sub(e + 2)
+			--extract key:value
+			local _, _, k, v = line:find("^([%w-]+):%s*(.+)")
+			if funcs[k] ~= nil then
+				funcs[k](v)
 			end
+		end
 	end
 
 	function update_clients() --called every PID interval
