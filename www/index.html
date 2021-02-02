@@ -1,0 +1,55 @@
+<!DOCTYPE HTML><html>
+<head>
+  <title>Gaggia Web UI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" type="text/css" href="/style.css">
+  <script type="text/javascript" src="/Chart-1_1_1.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
+</head>
+<body>
+  <div class="topnav">
+    <h1>ESP WebSocket Server</h1>
+  </div>
+  <div class="content">
+    <div class="card">
+      <h2>Output - GPIO 2</h2>
+      <p class="state">state: <span id="state">Unknown</span></p>
+      <p><button id="button" class="button">Toggle</button></p>
+    </div>
+  </div>
+  <script type="text/javascript" src="/script.js"></script>
+  <canvas id="myChart" width="400" height="400"></canvas>
+  <script type="text/javascript">
+    var ctx = document.getElementById("myChart").getContext("2d");
+    var data = {
+            labels: ["January", "February", "March", "April", "May", "June", "July"],
+            datasets: [
+                {
+                    label: "My First dataset",
+                    fillColor: "rgba(220,220,220,0.2)",
+                    strokeColor: "rgba(220,220,220,1)",
+                    pointColor: "rgba(220,220,220,1)",
+                    pointStrokeColor: "#fff",
+                    pointHighlightFill: "#fff",
+                    pointHighlightStroke: "rgba(220,220,220,1)",
+                    data: [65, 59, 80, 81, 56, 55, 40]
+                },
+                {
+                    label: "My Second dataset",
+                    fillColor: "rgba(151,187,205,0.2)",
+                    strokeColor: "rgba(151,187,205,1)",
+                    pointColor: "rgba(151,187,205,1)",
+                    pointStrokeColor: "#fff",
+                    pointHighlightFill: "#fff",
+                    pointHighlightStroke: "rgba(151,187,205,1)",
+                    data: [28, 48, 40, 19, 86, 27, 90]
+                }
+            ]
+        };
+    var myNewChart = new Chart(ctx).Line(data);
+  </script>
+  
+</body>
+</html>
