@@ -119,8 +119,10 @@ do
 
 	_G.ws_clients = {}
 
-	_G.ws_on_message = function(payload, opcode)
-		print("ws 0x"..tonumber(opcode).." \""..payload.."\"")
+	if _G.ws_on_message == nil then
+		_G.ws_on_message = function(payload, opcode)
+			print("ws 0x"..tonumber(opcode).." \""..payload.."\"")
+		end
 	end
 
 	_G.ws_send_all = function(payload, opcode)
