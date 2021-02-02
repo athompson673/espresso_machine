@@ -106,7 +106,13 @@ do
 		end
 		
 		--over-temp / bad temp lockout:
-		if input > HIGH_TEMP_LOCKOUT or input < LOW_TEMP_LOCKOUT then PID.lockout = true end
+		if input > HIGH_TEMP_LOCKOUT then
+			PID.lockout = true
+			print("HIGH_TEMP_LOCKOUT")
+		elseif input < LOW_TEMP_LOCKOUT then 
+			PID.lockout = true
+			print("LOW_TEMP_LOCKOUT")
+		end
 		if PID.lockout then return end
 		
 		--auto - manual switching
