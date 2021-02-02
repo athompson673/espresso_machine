@@ -1,5 +1,5 @@
 --run after flashing new firmware with "erase flash" option
-lfs_size = 8192 * 8 --64kib
+lfs_size = 8192 * 8 --64kib (*must* be multiple of 8kib iirc (also page-aligned))
 pt=node.getpartitiontable()
 if pt.lfs_size == 0 then
 	npt = {}
