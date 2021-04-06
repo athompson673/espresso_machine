@@ -32,25 +32,26 @@ do
 		end
 	end
 	funcs.get_config = function(value)
-		local msg = 'brew_setpoint:'..tostring(PID.brew_setpoint)..
-		'\nsteam_setpoint:'..tostring(PID.steam_setpoint)..
-		'\nkp:'..tostring(PID.kp)..
-		'\nki:'..tostring(PID.ki)..
-		'\nkd:'..tostring(PID.kd)..
-		'\nmode:'..PID.mode..
-		'\noutput:'..tostring(PID.output)
+		local msg = 'brew_setpoint '..tostring(PID.brew_setpoint)..
+		'\nsteam_setpoint '..tostring(PID.steam_setpoint)..
+		'\nkp '..tostring(PID.kp)..
+		'\nki '..tostring(PID.ki)..
+		'\nkd '..tostring(PID.kd)..
+		'\nmode '..PID.mode..
+		'\noutput '..tostring(PID.output)
 		ws_send_all(msg, 1)
 	end
 	funcs.save_config = function(value)
 		local f = file.open('config', 'w')
 		if f ~= nil then
-			local msg = 'brew_setpoint:'..tostring(PID.brew_setpoint)..
-			'\nsteam_setpoint:'..tostring(PID.steam_setpoint)..
-			'\nkp:'..tostring(PID.kp)..
-			'\nki:'..tostring(PID.ki)..
-			'\nkd:'..tostring(PID.kd)..
-			'\nmode:'..PID.mode..
-			'\noutput:'..tostring(PID.output)
+			local msg = 'brew_setpoint '..tostring(PID.brew_setpoint)..
+			'\nsteam_setpoint '..tostring(PID.steam_setpoint)..
+			'\nkp '..tostring(PID.kp)..
+			'\nki '..tostring(PID.ki)..
+			'\nkd '..tostring(PID.kd)..
+			'\nmode '..PID.mode..
+			'\noutput '..tostring(PID.output)..
+			'\n'
 			f.write(msg)
 			f:close()
 		end
@@ -60,12 +61,12 @@ do
 		if opcode ~= 1 then return end --only handle text opcode
 		while #payload > 0 do --for each line
 			--split next line
-			local e = payload:find("\r\n", 1, true)
+			local e = payload:find("\n", 1, true)
 			if not e then break end
 			local line = payload:sub(1, e - 1)
-			payload = payload:sub(e + 2)
+			payload = payload:sub(e + 1)
 			--extract key:value
-			local _, _, k, v = line:find("^([%w-]+):%s*(.+)")
+			local _, _, k, v = line:find("^([%w-_]+) (.+)$")
 			if funcs[k] ~= nil then
 				funcs[k](v)
 			end
@@ -73,9 +74,11 @@ do
 	end
 
 	function update_clients() --called every PID interval
-		local msg = 'brew_temp:'..tostring(PID.brew_temp)..
-		'\nsteam_temp:'..tostring(PID.steam_temp)..
-		'\noutput:'..tostring(PID.output)
-		ws_send_all(msg, 1)
+		if _G.ws_send_all ~= nil then
+			local msg = 'brew_temp:'..tostring(PID.brew_temp)..
+			'\nsteam_temp:'..tostring(PID.steam_temp)..
+			'\noutput:'..tostring(PID.output)
+			ws_send_all(msg, 1)
+		end
 	end
 end

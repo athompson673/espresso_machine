@@ -1,15 +1,15 @@
 --constants
 --pin assignments:
-local CS_BREW  = 3
-local CS_STEAM = 4
-local STEAM_PIN = 1
-local SSR_PIN = 2
+CS_BREW  = 3
+CS_STEAM = 4
+STEAM_PIN = 1
+SSR_PIN = 2
 --calibration: 
-local BREW_ZERO = 7620.5 --adc reading at 0C
-local STEAM_ZERO = 7620.5
+BREW_ZERO = 7620.5 --adc reading at 0C
+STEAM_ZERO = 7620.5
 --safety:
-local HIGH_TEMP_LOCKOUT = 170 --temp above this value is an error, or thermal runaway
-local LOW_TEMP_LOCKOUT = 10 --temp below this value is an error (or a broken furnace)
+HIGH_TEMP_LOCKOUT = 170 --temp above this value is an error, or thermal runaway
+LOW_TEMP_LOCKOUT = 10 --temp below this value is an error (or a broken furnace)
 --initialize interfaces:
 gpio.mode(STEAM_PIN, gpio.INPUT, gpio.PULLUP)
 gpio.mode(SSR_PIN, gpio.OUTPUT)
